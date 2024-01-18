@@ -4,12 +4,11 @@
   "description": "Backend for a reliable and comprehensive stock image website that provides collection of high-quality images for various creative projects.",
   "main": "index.js",
   "scripts": {
-    "start:dev": "npx tsc --watch & nodemon dist/index.js",
+    "start:dev": "npx nodemon src/index.ts",
     "build": "npx tsc",
     "lint": "npx eslint . --ext .ts",
     "format": "npx prettier --write \"src/**/*.ts\"",
-    "start": "node dist/index.js",
-    "build:prod": "npx tsc --build tsconfig.prod.json"
+    "start": "node dist/index.js"
   },
   "keywords": [
     "stock",
@@ -34,6 +33,7 @@
     "eslint-config-prettier": "^9.1.0",
     "nodemon": "^3.0.3",
     "prettier": "^3.2.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
