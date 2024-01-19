@@ -1,7 +1,8 @@
-import { User } from "./models";
+import { UserModel } from "./models";
+import { User } from "../types";
 
 export async function createUser(username: string) {
-  const user = new User({
+  const user = new UserModel({
     name: username,
     history: [],
     favorites: [],
@@ -10,12 +11,12 @@ export async function createUser(username: string) {
   await user.save();
 }
 
-async function getUserInfo(username: string) {
-  const user = await User.findOne({ name: username });
+export async function getUserInfo(username: string): Promise<User> {
+  const user = await UserModel.findOne({ name: username });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  return user;
+  return user as User;
 }

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { user } from "../types";
+import { User } from "../types";
 
 // load env variables
 dotenv.config();
@@ -16,10 +16,10 @@ async function connectToDB(): Promise<void> {
 }
 (async () => await connectToDB())();
 
-const userSchema = new mongoose.Schema<user>({
+const userSchema = new mongoose.Schema<User>({
   name: String,
   history: [String],
   favorites: [String],
 });
 
-export const User = mongoose.model("User", userSchema);
+export const UserModel = mongoose.model("User", userSchema);

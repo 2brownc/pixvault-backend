@@ -59,7 +59,7 @@ export type SearchConfig =
 
 // MONGODB
 
-export type user = {
+export type User = {
   name: string;
   history: string[];
   favorites: string[];

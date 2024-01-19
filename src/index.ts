@@ -1,15 +1,16 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
+
+import { verifyToken } from "./auth/account";
+import { createUser, getUserInfo } from "./db/account";
 import { getLandingPageImages } from "./api/images";
 
-import type { Image } from "./types";
+import type { Image, User } from "./types";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
-
-// initialize database if required
 
 app.get("/", async (req: Request, res: Response) => {
   const images: Image[] = await getLandingPageImages();
@@ -47,6 +48,28 @@ app.get("/", async (req: Request, res: Response) => {
 
   res.send(container);
 });
+
+app.get(
+  "/createUser",
+  verifyToken,
+  async (req: Request & { user?: any }, res) => {
+    await createUser(req.user);
+
+    res.statusCode = 200;
+    res.send("User created");
+  },
+);
+
+app.get(
+  "/userProfile",
+  verifyToken,
+  async (req: Request & { user?: any }, res) => {
+    const userInfo: User = await getUserInfo(req.user);
+
+    res.statusCode = 200;
+    res.send(userInfo);
+  },
+);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
