@@ -56,3 +56,11 @@ export type SearchConfig =
       license_version?: string;
       aspect_ratio?: AspectRatio;
     };
+
+// MONGODB
+
+export type user = {
+  name: string;
+  history: string[];
+  favorites: string[];
+};
