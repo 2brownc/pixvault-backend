@@ -1,16 +1,22 @@
 import express, { Express, Request, Response } from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 
 import { verifyToken } from "./auth/account";
 import { createUser, getUserInfo } from "./db/account";
 import { getLandingPageImages } from "./api/images";
-
+import { authConfig } from "./authConfig";
 import type { Image, User } from "./types";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+/*
+const appOrigin = authConfig.appOrigin || `http://localhost:${port}`;
+app.use(cors({ origin: appOrigin }));
+*/
 
 app.get("/", async (req: Request, res: Response) => {
   const images: Image[] = await getLandingPageImages();
