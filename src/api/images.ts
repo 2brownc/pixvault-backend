@@ -81,7 +81,7 @@ export async function getImages(
         category: result.category,
         filesize: result.filesize,
         filetype: result.filetype,
-        tags: result.tags.map((tag: string) => tag),
+        tags: result.tags.map((tag: any) => tag.name),
         attribution: result.attribution,
         mature: result.mature,
         thumbnail: result.thumbnail,

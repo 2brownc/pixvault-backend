@@ -12,7 +12,11 @@ async function connectToDB(): Promise<void> {
     throw new Error("Missing MONGODB_URI; Cannot connect to database.");
   }
 
-  await mongoose.connect(mongoURL);
+  try {
+    await mongoose.connect(mongoURL);
+  } catch (err) {
+    throw new Error(`Can't connect to mongoDB: ${err}`);
+  }
 }
 (async () => await connectToDB())();
 

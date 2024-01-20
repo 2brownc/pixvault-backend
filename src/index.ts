@@ -52,7 +52,7 @@ app.get("/", async (req: Request, res: Response) => {
 
   container += `</div>`;
 
-  res.send(container);
+  res.send(images);
 });
 
 app.get(
