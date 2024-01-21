@@ -30,6 +30,7 @@
     "mongoose": "^8.1.0"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.0",
     "@types/cors": "^2.8.17",
     "dotenv": "^16.3.1",
     "eslint": "^8.56.0",
