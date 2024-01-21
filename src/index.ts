@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 
 import { verifyToken } from "./auth/account";
 import { createUser, getUserInfo } from "./db/account";
-import { getLandingPageImages } from "./api/images";
+import { getImages, getLandingPageImages } from "./api/images";
 import { authConfig } from "./authConfig";
-import type { Image, User } from "./types";
+import type { Image, SearchConfig, User } from "./types";
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ const appOrigin = authConfig.appOrigin || `http://localhost:${port}`;
 app.use(cors({ origin: appOrigin }));
 */
 
-app.get("/", async (req: Request, res: Response) => {
+app.get("/welcomeimages", async (req: Request, res: Response) => {
   const images: Image[] = await getLandingPageImages();
 
   let container = `
@@ -52,10 +52,33 @@ app.get("/", async (req: Request, res: Response) => {
 
   container += `</div>`;
 
+  res.statusCode = 200;
   res.send(images);
 });
 
-app.get(
+app.get("/search/keyword/:keyword/:page", async (req: Request, res) => {
+  const searchConfig: SearchConfig = {
+    q: req.params.keyword,
+    page: req.params.page ? parseInt(req.params.page) : 1,
+  };
+  const images: Image[] = await getImages(searchConfig);
+
+  res.statusCode = 200;
+  res.send(images);
+});
+
+app.get("/search/tag/:tag/:page", async (req: Request, res) => {
+  const searchConfig: SearchConfig = {
+    tags: req.params.tag,
+    page: req.params.page ? parseInt(req.params.page) : 1,
+  };
+  const images: Image[] = await getImages(searchConfig);
+
+  res.statusCode = 200;
+  res.send(images);
+});
+
+app.post(
   "/createUser",
   verifyToken,
   async (req: Request & { user?: any }, res) => {
@@ -66,7 +89,7 @@ app.get(
   },
 );
 
-app.get(
+app.post(
   "/userProfile",
   verifyToken,
   async (req: Request & { user?: any }, res) => {
