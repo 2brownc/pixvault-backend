@@ -4,7 +4,11 @@ import dotenv from "dotenv";
 
 import { verifyToken } from "./auth/account";
 import { createUser, getUserInfo } from "./db/account";
-import { getImages, getLandingPageImages } from "./api/images";
+import {
+  getImages,
+  getLandingPageImages,
+  getRelatedImages,
+} from "./api/images";
 import { authConfig } from "./authConfig";
 import type { Image, SearchConfig, User } from "./types";
 
@@ -73,6 +77,14 @@ app.get("/search/tag/:tag/:page", async (req: Request, res) => {
     page: req.params.page ? parseInt(req.params.page) : 1,
   };
   const images: Image[] = await getImages(searchConfig);
+
+  res.statusCode = 200;
+  res.send(images);
+});
+
+app.get("/search/related/:identifier", async (req: Request, res) => {
+  const identifier: string = req.params.identifier;
+  const images: Image[] = await getRelatedImages(identifier);
 
   res.statusCode = 200;
   res.send(images);
