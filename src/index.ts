@@ -10,6 +10,7 @@ import {
   getRelatedImages,
 } from "./api/images";
 import { authConfig } from "./authConfig";
+import { auth } from "express-oauth2-jwt-bearer";
 import type { Image, SearchConfig, User } from "./types";
 
 dotenv.config();
@@ -21,6 +22,8 @@ const port = process.env.PORT || 3000;
 const appOrigin = authConfig.appOrigin || `http://localhost:${port}`;
 app.use(cors({ origin: appOrigin }));
 */
+
+const jwtCheck = auth(authConfig);
 
 app.get("/welcomeimages", async (req: Request, res: Response) => {
   const images: Image[] = await getLandingPageImages();
@@ -92,7 +95,7 @@ app.get("/search/related/:identifier", async (req: Request, res) => {
 
 app.post(
   "/createUser",
-  verifyToken,
+  jwtCheck,
   async (req: Request & { user?: any }, res) => {
     await createUser(req.user);
 
@@ -103,7 +106,7 @@ app.post(
 
 app.post(
   "/userProfile",
-  verifyToken,
+  jwtCheck,
   async (req: Request & { user?: any }, res) => {
     const userInfo: User = await getUserInfo(req.user);
 
