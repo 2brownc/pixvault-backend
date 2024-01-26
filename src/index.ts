@@ -23,7 +23,9 @@ const appOrigin = authConfig.appOrigin || `http://localhost:${port}`;
 app.use(cors({ origin: appOrigin }));
 */
 
+/* Auth0 tokecn checking as middleware*/
 const jwtCheck = auth(authConfig);
+app.use(jwtCheck);
 
 app.get("/welcomeimages", async (req: Request, res: Response) => {
   const images: Image[] = await getLandingPageImages();
@@ -93,27 +95,19 @@ app.get("/search/related/:identifier", async (req: Request, res) => {
   res.send(images);
 });
 
-app.post(
-  "/createUser",
-  jwtCheck,
-  async (req: Request & { user?: any }, res) => {
-    await createUser(req.user);
+app.post("/createUser", async (req: Request & { user?: any }, res) => {
+  await createUser(req.user);
 
-    res.statusCode = 200;
-    res.send("User created");
-  },
-);
+  res.statusCode = 200;
+  res.send("User created");
+});
 
-app.post(
-  "/userProfile",
-  jwtCheck,
-  async (req: Request & { user?: any }, res) => {
-    const userInfo: User = await getUserInfo(req.user);
+app.post("/userProfile", async (req: Request & { user?: any }, res) => {
+  const userInfo: User = await getUserInfo(req.user);
 
-    res.statusCode = 200;
-    res.send(userInfo);
-  },
-);
+  res.statusCode = 200;
+  res.send(userInfo);
+});
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
