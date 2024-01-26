@@ -1,8 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
-import { verifyToken } from "./auth/account";
 import { createUser, getUserInfo } from "./db/account";
 import {
   getImages,
@@ -65,10 +63,10 @@ app.get("/welcomeimages", async (req: Request, res: Response) => {
   res.send(images);
 });
 
-app.get("/search/keyword/:keyword/:page", async (req: Request, res) => {
+app.post("/search/keyword/", async (req: Request, res) => {
   const searchConfig: SearchConfig = {
-    q: req.params.keyword,
-    page: req.params.page ? parseInt(req.params.page) : 1,
+    q: req.body.keyword,
+    page: req.body.page ? parseInt(req.body.page) : 1,
   };
   const images: Image[] = await getImages(searchConfig);
 
@@ -76,10 +74,10 @@ app.get("/search/keyword/:keyword/:page", async (req: Request, res) => {
   res.send(images);
 });
 
-app.get("/search/tag/:tag/:page", async (req: Request, res) => {
+app.post("/search/tag/", async (req: Request, res) => {
   const searchConfig: SearchConfig = {
-    tags: req.params.tag,
-    page: req.params.page ? parseInt(req.params.page) : 1,
+    tags: req.body.tag,
+    page: req.body.page ? parseInt(req.body.page) : 1,
   };
   const images: Image[] = await getImages(searchConfig);
 
@@ -87,8 +85,8 @@ app.get("/search/tag/:tag/:page", async (req: Request, res) => {
   res.send(images);
 });
 
-app.get("/search/related/:identifier", async (req: Request, res) => {
-  const identifier: string = req.params.identifier;
+app.post("/search/related/", async (req: Request, res) => {
+  const identifier: string = req.body.identifier;
   const images: Image[] = await getRelatedImages(identifier);
 
   res.statusCode = 200;
@@ -96,14 +94,14 @@ app.get("/search/related/:identifier", async (req: Request, res) => {
 });
 
 app.post("/createUser", async (req: Request & { user?: any }, res) => {
-  await createUser(req.user);
+  await createUser(req.body.user);
 
   res.statusCode = 200;
   res.send("User created");
 });
 
 app.post("/userProfile", async (req: Request & { user?: any }, res) => {
-  const userInfo: User = await getUserInfo(req.user);
+  const userInfo: User = await getUserInfo(req.body.user);
 
   res.statusCode = 200;
   res.send(userInfo);
