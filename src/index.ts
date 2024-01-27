@@ -21,9 +21,15 @@ const appOrigin = authConfig.appOrigin || `http://localhost:${port}`;
 app.use(cors({ origin: appOrigin }));
 */
 
+// enable cors
+app.use(cors({ origin: process.env.CORS_ORIGIN_SERVER }));
+
 /* Auth0 tokecn checking as middleware*/
 const jwtCheck = auth(authConfig);
 app.use(jwtCheck);
+
+// to parse JSON request bodies
+app.use(express.json());
 
 app.get("/welcomeimages", async (req: Request, res: Response) => {
   const images: Image[] = await getLandingPageImages();
@@ -63,7 +69,7 @@ app.get("/welcomeimages", async (req: Request, res: Response) => {
   res.send(images);
 });
 
-app.post("/search/keyword/", async (req: Request, res) => {
+app.post("/search/keyword/", async (req: Request, res: Response) => {
   const searchConfig: SearchConfig = {
     q: req.body.keyword,
     page: req.body.page ? parseInt(req.body.page) : 1,
@@ -74,7 +80,7 @@ app.post("/search/keyword/", async (req: Request, res) => {
   res.send(images);
 });
 
-app.post("/search/tag/", async (req: Request, res) => {
+app.post("/search/tag/", async (req: Request, res: Response) => {
   const searchConfig: SearchConfig = {
     tags: req.body.tag,
     page: req.body.page ? parseInt(req.body.page) : 1,
@@ -85,7 +91,7 @@ app.post("/search/tag/", async (req: Request, res) => {
   res.send(images);
 });
 
-app.post("/search/related/", async (req: Request, res) => {
+app.post("/search/related/", async (req: Request, res: Response) => {
   const identifier: string = req.body.identifier;
   const images: Image[] = await getRelatedImages(identifier);
 
@@ -93,15 +99,15 @@ app.post("/search/related/", async (req: Request, res) => {
   res.send(images);
 });
 
-app.post("/createUser", async (req: Request & { user?: any }, res) => {
-  await createUser(req.body.user);
+app.post("/createUser", async (req: Request, res: Response) => {
+  await createUser(req.body.user as string);
 
   res.statusCode = 200;
   res.send("User created");
 });
 
-app.post("/userProfile", async (req: Request & { user?: any }, res) => {
-  const userInfo: User = await getUserInfo(req.body.user);
+app.post("/userProfile", async (req: Request, res: Response) => {
+  const userInfo: User = await getUserInfo(req.body.user as string);
 
   res.statusCode = 200;
   res.send(userInfo);
