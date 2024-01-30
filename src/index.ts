@@ -7,9 +7,9 @@ import {
   getLandingPageImages,
   getRelatedImages,
 } from "./api/images";
-import { authConfig } from "./authConfig";
-import { auth } from "express-oauth2-jwt-bearer";
 import type { Image, SearchConfig, User } from "./types";
+import { verifyAuth0Token } from "./auth/auth0";
+import { verifyAnonToken } from "./auth/anon";
 
 dotenv.config();
 
@@ -24,17 +24,16 @@ app.use(cors({ origin: appOrigin }));
 // enable cors
 app.use(cors({ origin: process.env.CORS_ORIGIN_SERVER }));
 
-/* Auth0 tokecn checking as middleware*/
-const jwtCheck = auth(authConfig);
-app.use(jwtCheck);
-
 // to parse JSON request bodies
 app.use(express.json());
 
-app.get("/welcomeimages", async (req: Request, res: Response) => {
-  const images: Image[] = await getLandingPageImages();
+app.get(
+  "/welcomeimages",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const images: Image[] = await getLandingPageImages();
 
-  let container = `
+    let container = `
     <div style="
     #imageGrid {
       column-count: 3;
@@ -54,64 +53,85 @@ app.get("/welcomeimages", async (req: Request, res: Response) => {
     ">
   `;
 
-  images.forEach((image) => {
-    container += `
+    images.forEach((image) => {
+      container += `
       <div>
         <div><img src="${image.thumbnail}" /></div>
         <div><a href="${image.foreign_landing_url}">GO TO PAGE</a></div>
       </tr>
     `;
-  });
+    });
 
-  container += `</div>`;
+    container += `</div>`;
 
-  res.statusCode = 200;
-  res.send(images);
-});
+    res.statusCode = 200;
+    res.send(images);
+  },
+);
 
-app.post("/search/keyword/", async (req: Request, res: Response) => {
-  const searchConfig: SearchConfig = {
-    q: req.body.keyword,
-    page: req.body.page ? parseInt(req.body.page) : 1,
-  };
-  const images: Image[] = await getImages(searchConfig);
+app.post(
+  "/search/keyword/",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const searchConfig: SearchConfig = {
+      q: req.body.keyword,
+      page: req.body.page ? parseInt(req.body.page) : 1,
+    };
+    const images: Image[] = await getImages(searchConfig);
 
-  res.statusCode = 200;
-  res.send(images);
-});
+    res.statusCode = 200;
+    res.send(images);
+  },
+);
 
-app.post("/search/tag/", async (req: Request, res: Response) => {
-  const searchConfig: SearchConfig = {
-    tags: req.body.tag,
-    page: req.body.page ? parseInt(req.body.page) : 1,
-  };
-  const images: Image[] = await getImages(searchConfig);
+app.post(
+  "/search/tag/",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const searchConfig: SearchConfig = {
+      tags: req.body.tag,
+      page: req.body.page ? parseInt(req.body.page) : 1,
+    };
+    const images: Image[] = await getImages(searchConfig);
 
-  res.statusCode = 200;
-  res.send(images);
-});
+    res.statusCode = 200;
+    res.send(images);
+  },
+);
 
-app.post("/search/related/", async (req: Request, res: Response) => {
-  const identifier: string = req.body.identifier;
-  const images: Image[] = await getRelatedImages(identifier);
+app.post(
+  "/search/related/",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const identifier: string = req.body.identifier;
+    const images: Image[] = await getRelatedImages(identifier);
 
-  res.statusCode = 200;
-  res.send(images);
-});
+    res.statusCode = 200;
+    res.send(images);
+  },
+);
 
-app.post("/createUser", async (req: Request, res: Response) => {
-  await createUser(req.body.user as string);
+app.post(
+  "/createUser",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    await createUser(req.body.user as string);
 
-  res.statusCode = 200;
-  res.send("User created");
-});
+    res.statusCode = 200;
+    res.send("User created");
+  },
+);
 
-app.post("/userProfile", async (req: Request, res: Response) => {
-  const userInfo: User = await getUserInfo(req.body.user as string);
+app.post(
+  "/userProfile",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const userInfo: User = await getUserInfo(req.body.user as string);
 
-  res.statusCode = 200;
-  res.send(userInfo);
-});
+    res.statusCode = 200;
+    res.send(userInfo);
+  },
+);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
