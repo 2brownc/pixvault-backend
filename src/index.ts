@@ -3,11 +3,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { createUser, getUserInfo } from "./db/account";
 import {
+  setFavoriteImage,
+  setRecentImage,
+  getFavoriteImages,
+  getRecentImages,
+} from "./db/images";
+import {
   getImages,
   getLandingPageImages,
   getRelatedImages,
+  getImagesInfo,
 } from "./api/images";
-import type { Image, SearchConfig, User } from "./types";
+import type { Image, SearchConfig, User, ImageId, ImageRecord } from "./types";
 import { verifyAuth0Token } from "./auth/auth0";
 import { verifyAnonToken } from "./auth/anon";
 
@@ -130,6 +137,70 @@ app.post(
 
     res.statusCode = 200;
     res.send(userInfo);
+  },
+);
+
+app.post(
+  "/setFavoriteImage",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const imageRecord: ImageRecord = {
+      id: req.body.imageId as string,
+      title: req.body.title as string,
+      thumbnail: req.body.thumbnail as string,
+      timestamp: new Date(req.body.timestamp),
+    };
+    await setFavoriteImage(req.body.user as string, imageRecord);
+
+    res.statusCode = 200;
+    res.send("Image added to favorites");
+  },
+);
+
+app.post(
+  "/setRecentImage",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const imageRecord: ImageRecord = {
+      id: req.body.imageId as string,
+      title: req.body.title as string,
+      thumbnail: req.body.thumbnail as string,
+      timestamp: new Date(req.body.timestamp),
+    };
+    await setRecentImage(req.body.user as string, imageRecord);
+
+    res.statusCode = 200;
+    res.send("Image added to history");
+  },
+);
+
+app.post(
+  "getSavedImages",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const imageRecords: ImageRecord[] = await getRecentImages(
+      req.body.user as string,
+    );
+    const imageIds = imageRecords.map((imageRecord) => imageRecord.id);
+    const images: Image[] = await getImagesInfo(imageIds);
+
+    res.statusCode = 200;
+    res.send(images);
+  },
+);
+
+app.post(
+  "/getFavoriteImages",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const imageRecords: ImageRecord[] = await getFavoriteImages(
+      req.body.user as string,
+    );
+    const imageIds = imageRecords.map((imageRecord) => imageRecord.id);
+    const images: Image[] = await getImagesInfo(imageIds);
+
+    res.statusCode = 200;
+    res.send(images);
   },
 );
 

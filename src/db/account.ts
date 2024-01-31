@@ -1,5 +1,5 @@
 import { UserModel } from "./models";
-import { User } from "../types";
+import { User, ImageId } from "../types";
 
 export async function createUser(username: string) {
   const user = new UserModel({

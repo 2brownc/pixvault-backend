@@ -1,6 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import type { TokenResponse, Image, SearchConfig } from "../types";
+import type { TokenResponse, Image, SearchConfig, ImageId } from "../types";
 import { getAccessToken } from "./auth";
 
 // load env variables
@@ -142,32 +142,6 @@ export async function getRelatedImages(identifier: string): Promise<Image[]> {
   }
 }
 
-/*
-export async function getImagesByQuery(
-  query: string,
-  page: number = 1,
-): Promise<Image[]> {
-  const config: SearchConfig = { q: query, page: page };
-  return getImages(config);
-}
-
-export async function getImagesByTag(
-  tags: string[],
-  page: number = 1,
-): Promise<Image[]> {
-  const config: SearchConfig = { tags: tags.join(","), page: page };
-  return getImages(config);
-}
-
-export async function getImagesByAspectRatio(
-  tags: string[],
-  page: number = 1,
-): Promise<Image[]> {
-  const config: SearchConfig = { tags: tags.join(","), page: page };
-  return getImages(config);
-}
-*/
-
 export async function getLandingPageImages(): Promise<Image[]> {
   const config: SearchConfig = {
     page: 1,
@@ -175,6 +149,58 @@ export async function getLandingPageImages(): Promise<Image[]> {
   };
 
   const images: Image[] = await getImages(config);
+
+  return images;
+}
+
+export async function getImageInfo(identifier: ImageId): Promise<Image> {
+  await waitForAccessToken();
+  if (!access_token) {
+    throw new Error("No access_token; Cannot get images.");
+  }
+
+  const url = `https://api.openverse.engineering/v1/images/${identifier}/`;
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${access_token.access_token}`,
+    },
+  });
+  if (response.status === 200) {
+    const result = response.data;
+    return {
+      id: result.id,
+      title: result.title,
+      indexed_on: result.indexed_on,
+      foreign_landing_url: result.foreign_landing_url,
+      url: result.url,
+      creator: result.creator,
+      creator_url: result.creator_url,
+      license: result.license,
+      license_version: result.license_version,
+      license_url: result.license_url,
+      provider: result.provider,
+      source: result.source,
+      category: result.category,
+      filesize: result.filesize,
+      filetype: result.filetype,
+      tags: result.tags.map((tag: any) => tag.name),
+      attribution: result.attribution,
+      mature: result.mature,
+      thumbnail: result.thumbnail,
+      related_url: result.related_url,
+    } as Image;
+  } else {
+    throw new Error(
+      `Failed to get images: ${response.status} ${response.statusText}`,
+    );
+  }
+}
+
+export async function getImagesInfo(identifiers: ImageId[]): Promise<Image[]> {
+  const images: Image[] = [];
+  for (const identifier of identifiers) {
+    images.push(await getImageInfo(identifier));
+  }
 
   return images;
 }
