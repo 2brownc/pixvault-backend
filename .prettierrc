@@ -1,9 +1,4 @@
 {
-  "prettier/prettier": [
-    "error",
-    {
-      "singleQuote": true,
-      "parser": "flow"
-    }
-  ]
+  "semi": false,
+  "arrowParens": "avoid"
 }
