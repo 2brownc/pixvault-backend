@@ -3,11 +3,11 @@ import { ImageRecord, ImageId } from "../types"
 import { UserModel } from "./models"
 
 export async function checkFavoriteImage(
-  username: string,
+  userId: string,
   imageId: string,
 ): Promise<boolean> {
   try {
-    const user = await UserModel.findOne({ name: username })
+    const user = await UserModel.findOne({ name: userId })
     if (!user) {
       return false
     }
@@ -18,14 +18,14 @@ export async function checkFavoriteImage(
 }
 
 export async function setFavoriteImage(
-  username: string,
+  userId: string,
   imageRecord: ImageRecord,
 ): Promise<boolean> {
-  const user = await UserModel.findOne({ name: username })
+  const user = await UserModel.findOne({ name: userId })
 
   if (user) {
     //check if the image is already faved
-    const isFaved = await checkFavoriteImage(username, imageRecord.id)
+    const isFaved = await checkFavoriteImage(userId, imageRecord.id)
     if (isFaved) {
       return true
     }
@@ -45,10 +45,10 @@ export async function setFavoriteImage(
 }
 
 export async function setRecentImage(
-  username: string,
+  userId: string,
   imageRecord: ImageRecord,
 ): Promise<boolean> {
-  const user = await UserModel.findOne({ name: username })
+  const user = await UserModel.findOne({ name: userId })
 
   if (!user) {
     return false
@@ -65,9 +65,9 @@ export async function setRecentImage(
 }
 
 export async function getFavoriteImages(
-  username: string,
+  userId: string,
 ): Promise<ImageRecord[]> {
-  const user = await UserModel.findOne({ name: username })
+  const user = await UserModel.findOne({ name: userId })
 
   if (!user) {
     throw new Error("User not found")
@@ -77,9 +77,9 @@ export async function getFavoriteImages(
 }
 
 export async function getRecentImages(
-  username: string,
+  userId: string,
 ): Promise<ImageRecord[] | null> {
-  const user = await UserModel.findOne({ name: username })
+  const user = await UserModel.findOne({ name: userId })
 
   if (!user) {
     return null

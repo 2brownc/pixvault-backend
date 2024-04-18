@@ -203,7 +203,7 @@ app.post(
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     const imageRecords: ImageRecord[] = await getFavoriteImages(
-      req.body.user as string,
+      req.body.userId as string,
     )
     const imageIds = imageRecords.map(imageRecord => imageRecord.id)
     const images: Image[] = await getImagesInfo(imageIds)
