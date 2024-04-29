@@ -69,6 +69,7 @@ export type SearchConfig =
 // MONGODB
 
 export type User = {
+  userId: string
   name: string
   history: ImageRecord[]
   favorites: ImageRecord[]

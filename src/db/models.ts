@@ -22,6 +22,7 @@ async function connectToDB(): Promise<void> {
 
 const userSchema = new mongoose.Schema<User>({
   name: String,
+  userId: String,
   history: [Object],
   favorites: [Object],
 })

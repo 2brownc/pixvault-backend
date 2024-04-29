@@ -123,7 +123,7 @@ app.post(
   "/createUser",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
-    await createUser(req.body.user as string)
+    await createUser(req.body.userId as string, req.body.userName as string)
 
     res.statusCode = 200
     res.send("User created")
@@ -134,12 +134,12 @@ app.post(
   "/userProfile",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
-    const userInfo: User | null = await getUserInfo(req.body.user as string)
-    res.statusCode = 200
+    const userInfo: User | null = await getUserInfo(req.body.userId as string)
     if (userInfo === null) {
       res.statusCode = 404
       res.send("User not found")
     } else {
+      res.statusCode = 200
       res.send(userInfo)
     }
   },
@@ -149,7 +149,6 @@ app.post(
   "/setFavoriteImage",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
-    console.log("set fav req body: ", req.body)
     const userId: string = req.body.userId
     const imageRecord: ImageRecord = req.body.imageRecord
     const result = await setFavoriteImage(userId, imageRecord)

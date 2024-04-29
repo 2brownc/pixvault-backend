@@ -1,9 +1,10 @@
 import { UserModel } from "./models"
 import { User, ImageId } from "../types"
 
-export async function createUser(username: string) {
+export async function createUser(userId: string, userName: string) {
   const user = new UserModel({
-    name: username,
+    userId: userId,
+    name: userName,
     history: [],
     favorites: [],
   })
@@ -11,8 +12,12 @@ export async function createUser(username: string) {
   await user.save()
 }
 
-export async function getUserInfo(username: string): Promise<User> {
-  const user = await UserModel.findOne({ name: username })
+export async function getUserInfo(userId: string): Promise<User | null> {
+  const user = await UserModel.findOne({ userId })
+
+  if (user === null) {
+    return null
+  }
 
   return user as User
 }
