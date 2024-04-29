@@ -1,6 +1,6 @@
 import dotenv from "dotenv"
 import mongoose from "mongoose"
-import { User } from "../types"
+import type { User } from "../types"
 
 // load env variables
 dotenv.config()

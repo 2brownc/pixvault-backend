@@ -26,7 +26,7 @@ export type Image = {
   filetype: string
   tags: string[]
   attribution: string
-  mature: Boolean
+  mature: boolean
   thumbnail: string
   related_url: string
 }

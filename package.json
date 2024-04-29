@@ -6,9 +6,10 @@
   "scripts": {
     "start": "npx nodemon src/index.ts",
     "build": "npx tsc",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false npx eslint --config eslint.config.js src/",
-    "format": "npx prettier --write \"src/**/*.ts\"",
-    "preview": "node dist/index.js"
+    "preview": "node dist/index.js",
+    "format": "npx @biomejs/biome format --write ./src",
+    "lint": "npx @biomejs/biome lint ./src",
+    "lint:fix": "npx @biomejs/biome lint --apply ./src"
   },
   "keywords": [
     "stock",
@@ -31,6 +32,7 @@
     "mongoose": "^8.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.7.1",
     "@flydotio/dockerfile": "^0.5.0",
     "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.5",

@@ -1,5 +1,5 @@
 import axios from "axios"
-import { TokenResponse } from "../types"
+import type { TokenResponse } from "../types"
 
 // Get access token to continue making API requests
 

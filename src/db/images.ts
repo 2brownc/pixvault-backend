@@ -1,5 +1,5 @@
 import e from "express"
-import { ImageRecord, ImageId } from "../types"
+import type { ImageRecord, ImageId } from "../types"
 import { UserModel } from "./models"
 
 export async function checkFavoriteImage(
