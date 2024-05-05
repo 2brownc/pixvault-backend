@@ -7,7 +7,7 @@ import { getAccessToken } from "./auth";
 dotenv.config();
 
 // Access token is required to make any request to OPENVERSEAPI
-let access_token: TokenResponse | null = null;
+let access_token: string | null = null;
 /* Access token expires every 12 hours,
 so update it every 11 hours to be safe */
 async function updateAccessToken(): Promise<void> {
@@ -56,44 +56,52 @@ export async function getImages(
 
   const url = "https://api.openverse.engineering/v1/images";
   const params = config;
-  const response = await axios.get(url, {
-    params: params,
-    headers: {
-      Authorization: `Bearer ${access_token.access_token}`,
-    },
-  });
-  if (response.status === 200) {
-    const images: Image[] = [];
-    for (const result of response.data.results) {
-      images.push({
-        id: result.id,
-        title: result.title,
-        indexed_on: result.indexed_on,
-        foreign_landing_url: result.foreign_landing_url,
-        url: result.url,
-        creator: result.creator,
-        creator_url: result.creator_url,
-        license: result.license,
-        license_version: result.license_version,
-        license_url: result.license_url,
-        provider: result.provider,
-        source: result.source,
-        category: result.category,
-        filesize: result.filesize,
-        filetype: result.filetype,
-        tags: result.tags.map((tag: { name: string }) => tag.name),
-        attribution: result.attribution,
-        mature: result.mature,
-        thumbnail: result.thumbnail,
-        related_url: result.related_url,
-      });
+  try {
+    const response = await axios.get(url, {
+      params: params,
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      const images: Image[] = [];
+      for (const result of response.data.results) {
+        images.push({
+          id: result.id,
+          title: result.title,
+          indexed_on: result.indexed_on,
+          foreign_landing_url: result.foreign_landing_url,
+          url: result.url,
+          creator: result.creator,
+          creator_url: result.creator_url,
+          license: result.license,
+          license_version: result.license_version,
+          license_url: result.license_url,
+          provider: result.provider,
+          source: result.source,
+          category: result.category,
+          filesize: result.filesize,
+          filetype: result.filetype,
+          tags: result.tags.map((tag: { name: string }) => tag.name),
+          attribution: result.attribution,
+          mature: result.mature,
+          thumbnail: result.thumbnail,
+          related_url: result.related_url,
+        });
+      }
+      return images;
     }
-    return images;
+  } catch (error) {
+    console.error(
+      "error fetching images:: params",
+      { params },
+      " acces token",
+      access_token
+    );
   }
 
-  throw new Error(
-    `Failed to get images: ${response.status} ${response.statusText}`
-  );
+  return [] as Image[];
 }
 
 export async function getRelatedImages(identifier: string): Promise<Image[]> {
@@ -105,7 +113,7 @@ export async function getRelatedImages(identifier: string): Promise<Image[]> {
   const url = `https://api.openverse.engineering/v1/images/${identifier}/related/`;
   const response = await axios.get(url, {
     headers: {
-      Authorization: `Bearer ${access_token.access_token}`,
+      Authorization: `Bearer ${access_token}`,
     },
   });
   if (response.status === 200) {
@@ -162,7 +170,7 @@ export async function getImageInfo(identifier: ImageId): Promise<Image> {
   const url = `https://api.openverse.engineering/v1/images/${identifier}/`;
   const response = await axios.get(url, {
     headers: {
-      Authorization: `Bearer ${access_token.access_token}`,
+      Authorization: `Bearer ${access_token}`,
     },
   });
   if (response.status === 200) {
