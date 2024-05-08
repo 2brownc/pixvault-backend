@@ -212,6 +212,18 @@ app.post(
   }
 );
 
+app.post(
+  "/images/getIdListInfo",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const imageIds = req.body.images as ImageId[];
+    const images: Image[] = await getImagesInfo(imageIds);
+
+    res.statusCode = 200;
+    res.send(images);
+  }
+);
+
 app.listen(port, () => {
   console.info(`[server]: Server is running at http://localhost:${port}`);
 });
