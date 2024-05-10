@@ -8,6 +8,8 @@ import {
   getFavoriteImages,
   unsetFavoriteImage,
   getRecentImages,
+  unsetRecentImage,
+  deleteRecentHistory,
 } from "./db/images";
 import {
   getImages,
@@ -164,14 +166,62 @@ app.post(
 );
 
 app.post(
-  "/setRecentImage",
+  "/images/setRecent",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
+    const userId: string = req.body.userId;
     const imageRecord: ImageRecord = req.body.imageRecord;
-    await setRecentImage(req.body.user as string, imageRecord);
+    try {
+      const result = await setRecentImage(userId, imageRecord);
+      if (result) {
+        res.statusCode = 200;
+        res.send("Image added to history");
+      }
+    } catch (error) {
+      res.statusCode = 400;
+      res.send("User does not exist.");
+      return;
+    }
+  }
+);
 
-    res.statusCode = 200;
-    res.send("Image added to history");
+app.post(
+  "/images/unsetRecent",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const userId: string = req.body.userId;
+    const imageRecord: ImageRecord = req.body.imageRecord;
+    try {
+      const result = await unsetRecentImage(userId, imageRecord);
+      if (result) {
+        res.statusCode = 200;
+        res.send("Image removed from history");
+      }
+    } catch (error) {
+      res.statusCode = 400;
+      res.send("User does not exist.");
+      return;
+    }
+  }
+);
+
+app.post(
+  "/images/deleteAllRecentHistory",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    const userId: string = req.body.userId;
+
+    try {
+      const result = await deleteRecentHistory(userId);
+      if (result) {
+        res.statusCode = 200;
+        res.send("Image history deleted");
+      }
+    } catch (error) {
+      res.statusCode = 400;
+      res.send("User does not exist.");
+      return;
+    }
   }
 );
 
