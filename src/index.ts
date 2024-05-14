@@ -84,7 +84,7 @@ app.post(
   verifyAnonToken,
   async (req: Request, res: Response) => {
     const searchConfig: SearchConfig = {
-      q: req.body.keyword,
+      q: req.body.q,
       page: req.body.page ? Number.parseInt(req.body.page) : 1,
     };
     const images: Image[] = await getImages(searchConfig);
@@ -99,7 +99,7 @@ app.post(
   verifyAnonToken,
   async (req: Request, res: Response) => {
     const searchConfig: SearchConfig = {
-      tags: req.body.tag,
+      tags: req.body.q,
       page: req.body.page ? Number.parseInt(req.body.page) : 1,
     };
     const images: Image[] = await getImages(searchConfig);
