@@ -130,3 +130,6 @@ dist
 .pnp.*
 
 fly.toml
+
+# pm2 ecosystem file
+ecosystem.config.js
