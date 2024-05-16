@@ -8,23 +8,23 @@ const mongoURL = process.env.MONGODB_URI
 
 // connect to MongoDB
 async function connectToDB(): Promise<void> {
-  if (!mongoURL) {
-    throw new Error("Missing MONGODB_URI; Cannot connect to database.")
-  }
+	if (!mongoURL) {
+		throw new Error("Missing MONGODB_URI; Cannot connect to database.")
+	}
 
-  try {
-    await mongoose.connect(mongoURL)
-  } catch (err) {
-    throw new Error(`Can't connect to mongoDB: ${err}`)
-  }
+	try {
+		await mongoose.connect(mongoURL)
+	} catch (err) {
+		throw new Error(`Can't connect to mongoDB: ${err}`)
+	}
 }
 ;(async () => await connectToDB())()
 
 const userSchema = new mongoose.Schema<User>({
-  name: String,
-  userId: String,
-  history: [Object],
-  favorites: [Object],
+	name: String,
+	userId: String,
+	history: [Object],
+	favorites: [Object],
 })
 
 export const UserModel = mongoose.model("User", userSchema)
