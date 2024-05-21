@@ -1,30 +1,30 @@
-import express, { type Express, type Request, type Response } from "express"
-import cors from "cors"
-import dotenv from "dotenv"
-import { createUser, getUserInfo } from "./db/account"
+import express, { type Express, type Request, type Response } from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { createUser, getUserInfo } from "./db/account";
 import {
-	setFavoriteImage,
-	setRecentImage,
-	getFavoriteImages,
-	unsetFavoriteImage,
-	getRecentImages,
-	unsetRecentImage,
-	deleteRecentHistory,
-} from "./db/images"
+  setFavoriteImage,
+  setRecentImage,
+  getFavoriteImages,
+  unsetFavoriteImage,
+  getRecentImages,
+  unsetRecentImage,
+  deleteRecentHistory,
+} from "./db/images";
 import {
-	getImages,
-	getLandingPageImages,
-	getRelatedImages,
-	getImagesInfo,
-} from "./api/images"
-import type { Image, SearchConfig, User, ImageId, ImageRecord } from "./types"
-import { verifyAuth0Token } from "./auth/auth0"
-import { verifyAnonToken } from "./auth/anon"
+  getImages,
+  getLandingPageImages,
+  getRelatedImages,
+  getImagesInfo,
+} from "./api/images";
+import type { Image, SearchConfig, User, ImageId, ImageRecord } from "./types";
+import { verifyAuth0Token } from "./auth/auth0";
+import { verifyAnonToken } from "./auth/anon";
 
-dotenv.config()
+dotenv.config();
 
-const app: Express = express()
-const port = process.env.PORT || 3000
+const app: Express = express();
+const port = process.env.PORT || 3000;
 
 /*
 const appOrigin = authConfig.appOrigin || `http://localhost:${port}`;
@@ -32,18 +32,33 @@ app.use(cors({ origin: appOrigin }));
 */
 
 // enable cors
-app.use(cors({ origin: process.env.CORS_ORIGIN_SERVER }))
+app.use(cors({ origin: process.env.CORS_ORIGIN_SERVER }));
 
 // to parse JSON request bodies
-app.use(express.json())
+app.use(express.json());
 
+/*
+ this is a backend server
+ so no direct interaction is allowed
+ there is no "GET /"
+*/
+
+// for testing purpose; protected
 app.get(
-	"/welcomeimages",
-	verifyAnonToken,
-	async (req: Request, res: Response) => {
-		const images: Image[] = await getLandingPageImages()
+  "/welcomeimages",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    try {
+      const images: Image[] = await getLandingPageImages();
 
-		let container = `
+      // if no images are received
+      if (!images) {
+        res.statusCode = 500;
+        res.send("Can't get images");
+        return;
+      }
+
+      let container = `
     <div style="
     #imageGrid {
       column-count: 3;
@@ -61,237 +76,274 @@ app.get(
       object-fit: cover;
     }
     ">
-  `
+  `;
 
-		images.map((image) => {
-			container += `
+      images.map((image) => {
+        container += `
       <div>
         <div><img src="${image.thumbnail}" /></div>
         <div><a href="${image.foreign_landing_url}">GO TO PAGE</a></div>
       </tr>
-    `
-		})
+    `;
+      });
 
-		container += "</div>"
+      container += "</div>";
 
-		res.statusCode = 200
-		res.send(images)
-	},
-)
+      res.statusCode = 200;
+      res.send(images);
 
-app.post(
-	"/search/keyword/",
-	verifyAnonToken,
-	async (req: Request, res: Response) => {
-		const searchConfig: SearchConfig = {
-			q: req.body.q,
-			page: req.body.page ? Number.parseInt(req.body.page) : 1,
-		}
-		const images: Image[] = await getImages(searchConfig)
+      return;
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Can't get images: ${error}`);
+    }
 
-		res.statusCode = 200
-		res.send(images)
-	},
-)
+    res.statusCode = 404;
+    res.send("no images found");
+  }
+);
 
 app.post(
-	"/search/tag/",
-	verifyAnonToken,
-	async (req: Request, res: Response) => {
-		const searchConfig: SearchConfig = {
-			tags: req.body.q,
-			page: req.body.page ? Number.parseInt(req.body.page) : 1,
-		}
-		const images: Image[] = await getImages(searchConfig)
-
-		res.statusCode = 200
-		res.send(images)
-	},
-)
-
-app.post(
-	"/search/related/",
-	verifyAnonToken,
-	async (req: Request, res: Response) => {
-		const identifier: string = req.body.identifier
-		const images: Image[] = await getRelatedImages(identifier)
-
-		res.statusCode = 200
-		res.send(images)
-	},
-)
+  "/search/keyword/",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const searchConfig: SearchConfig = {
+      q: req.body.q,
+      page: req.body.page ? Number.parseInt(req.body.page) : 1,
+    };
+    try {
+      const images: Image[] = await getImages(searchConfig);
+      res.statusCode = 200;
+      res.send(images);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Can't get images by keyword: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"/createUser",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		await createUser(req.body.userId as string, req.body.userName as string)
+  "/search/tag/",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const searchConfig: SearchConfig = {
+      tags: req.body.q,
+      page: req.body.page ? Number.parseInt(req.body.page) : 1,
+    };
 
-		res.statusCode = 200
-		res.send("User created")
-	},
-)
-
-app.post(
-	"/userProfile",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const userInfo: User | null = await getUserInfo(req.body.userId as string)
-		if (userInfo === null) {
-			res.statusCode = 404
-			res.send("User not found")
-		} else {
-			res.statusCode = 200
-			res.send(userInfo)
-		}
-	},
-)
+    try {
+      const images: Image[] = await getImages(searchConfig);
+      res.statusCode = 200;
+      res.send(images);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Can't get images by tag: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"/setFavoriteImage",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const userId: string = req.body.userId
-		const imageRecord: ImageRecord = req.body.imageRecord
-		const result = await setFavoriteImage(userId, imageRecord)
+  "/search/related/",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    const identifier: string = req.body.identifier;
 
-		if (result) {
-			res.statusCode = 200
-			res.send("Image added to favorites.")
-		} else {
-			res.statusCode = 400
-			res.send("User does not exist.")
-		}
-	},
-)
-
-app.post(
-	"/images/setRecent",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const userId: string = req.body.userId
-		const imageRecord: ImageRecord = req.body.imageRecord
-		try {
-			const result = await setRecentImage(userId, imageRecord)
-			if (result) {
-				res.statusCode = 200
-				res.send("Image added to history")
-			}
-		} catch (error) {
-			res.statusCode = 400
-			res.send("User does not exist.")
-			return
-		}
-	},
-)
+    try {
+      const images: Image[] = await getRelatedImages(identifier);
+      res.statusCode = 200;
+      res.send(images);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Can't get related images: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"/images/unsetRecent",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const userId: string = req.body.userId
-		const imageRecord: ImageRecord = req.body.imageRecord
-		try {
-			const result = await unsetRecentImage(userId, imageRecord)
-			if (result) {
-				res.statusCode = 200
-				res.send("Image removed from history")
-			}
-		} catch (error) {
-			res.statusCode = 400
-			res.send("User does not exist.")
-			return
-		}
-	},
-)
+  "/createUser",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userId: string = req.body.userId;
+      const userName: string = req.body.imageRecord;
+
+      await createUser(userId, userName);
+
+      res.statusCode = 200;
+      res.send("User created");
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Create user error: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"/images/deleteAllRecentHistory",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const userId: string = req.body.userId
+  "/userProfile",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userInfo: User = await getUserInfo(req.body.userId as string);
 
-		try {
-			const result = await deleteRecentHistory(userId)
-			if (result) {
-				res.statusCode = 200
-				res.send("Image history deleted")
-			}
-		} catch (error) {
-			res.statusCode = 400
-			res.send("User does not exist.")
-			return
-		}
-	},
-)
+      res.statusCode = 200;
+      res.send(userInfo);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Get user error: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"getSavedImages",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const imageRecords: ImageRecord[] | null = await getRecentImages(
-			req.body.user as string,
-		)
+  "/setFavoriteImage",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userId: string = req.body.userId;
+      const imageRecord: ImageRecord = req.body.imageRecord;
 
-		//if there are no recent images
-		if (imageRecords === null) {
-			res.statusCode = 200
-			res.send("No recent images found")
-			return
-		}
-		const imageIds = imageRecords.map((imageRecord) => imageRecord.id)
-		const images: Image[] = await getImagesInfo(imageIds)
-
-		res.statusCode = 200
-		res.send(images)
-	},
-)
+      await setFavoriteImage(userId, imageRecord);
+      res.statusCode = 200;
+      res.send("Image added to favorites");
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Favorite image error: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"/getFavoriteImages",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const imageRecords: ImageRecord[] = await getFavoriteImages(
-			req.body.userId as string,
-		)
-		const imageIds = imageRecords.map((imageRecord) => imageRecord.id)
-		const images: Image[] = await getImagesInfo(imageIds)
+  "/images/setRecent",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userId: string = req.body.userId;
+      const imageRecord: ImageRecord = req.body.imageRecord;
 
-		res.statusCode = 200
-		res.send(images)
-	},
-)
+      await setRecentImage(userId, imageRecord);
+      res.statusCode = 200;
+      res.send("Image added to history");
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Set recent image error: ${error}`);
+    }
+  }
+);
 
 app.post(
-	"/images/getIdListInfo",
-	verifyAnonToken,
-	async (req: Request, res: Response) => {
-		const imageIds = req.body.images as ImageId[]
-		const images: Image[] = await getImagesInfo(imageIds)
+  "/images/unsetRecent",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userId: string = req.body.userId;
+      const imageRecord: ImageRecord = req.body.imageRecord;
 
-		res.statusCode = 200
-		res.send(images)
-	},
-)
+      await unsetRecentImage(userId, imageRecord);
+
+      res.statusCode = 200;
+      res.send("Image removed from history");
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Unset recent image error: ${error}`);
+    }
+  }
+);
+
+app.post(
+  "/images/deleteAllRecentHistory",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userId: string = req.body.userId;
+
+      await deleteRecentHistory(userId);
+
+      res.statusCode = 200;
+      res.send("Image history deleted");
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Clear recent image history error: ${error}`);
+      return;
+    }
+  }
+);
+
+app.post(
+  "/getRecentImages",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const imageRecords: ImageRecord[] = await getRecentImages(
+        req.body.user as string
+      );
+
+      const imageIds = imageRecords.map((imageRecord) => imageRecord.id);
+      const images: Image[] = await getImagesInfo(imageIds);
+
+      res.statusCode = 200;
+      res.send(images);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`Get recent images error: ${error}`);
+    }
+  }
+);
+
+app.post(
+  "/getFavoriteImages",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const imageRecords: ImageRecord[] = await getFavoriteImages(
+        req.body.userId as string
+      );
+      const imageIds = imageRecords.map((imageRecord) => imageRecord.id);
+      const images: Image[] = await getImagesInfo(imageIds);
+
+      res.statusCode = 200;
+      res.send(images);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`get fav images error: ${error}`);
+    }
+  }
+);
+
+app.post(
+  "/images/getIdListInfo",
+  verifyAnonToken,
+  async (req: Request, res: Response) => {
+    try {
+      const imageIds = req.body.images as ImageId[];
+      const images: Image[] = await getImagesInfo(imageIds);
+
+      res.statusCode = 200;
+      res.send(images);
+    } catch (error) {
+      res.statusCode = 500;
+      res.send(`get image id list info: ${error}`);
+    }
+  }
+);
+
+app.post(
+  "/unsetFavoriteImage",
+  verifyAuth0Token,
+  async (req: Request, res: Response) => {
+    try {
+      const userId: string = req.body.userId;
+      const imageId: ImageId = req.body.imageId;
+
+      await unsetFavoriteImage(userId, imageId);
+      res.statusCode = 200;
+      res.send("Image removed from favorites.");
+    } catch (error) {
+      res.statusCode = 501;
+      res.send(error);
+    }
+  }
+);
 
 app.listen(port, () => {
-	console.info(`[server]: Server is running at http://localhost:${port}`)
-})
-
-app.post(
-	"/unsetFavoriteImage",
-	verifyAuth0Token,
-	async (req: Request, res: Response) => {
-		const userId: string = req.body.userId
-		const imageId: ImageId = req.body.imageId
-
-		try {
-			const result = await unsetFavoriteImage(userId, imageId)
-			res.statusCode = 200
-			res.send("Image removed from favorites.")
-		} catch (error) {
-			res.statusCode = 501
-			res.send(error)
-		}
-	},
-)
+  console.info(`[server]: Server is running at http://localhost:${port}`);
+});

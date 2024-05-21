@@ -1,158 +1,149 @@
-import e from "express"
-import type { ImageRecord, ImageId } from "../types"
-import { UserModel } from "./models"
+import e from "express";
+import type { ImageRecord, ImageId } from "../types";
+import { UserModel } from "./models";
 
 export async function checkFavoriteImage(
-	userId: string,
-	imageId: string,
+  userId: string,
+  imageId: string
 ): Promise<boolean> {
-	try {
-		const user = await UserModel.findOne({ userId: userId })
-		if (!user) {
-			return false
-		}
-		return user.favorites.some((favorite) => favorite.id === imageId)
-	} catch (err) {
-		return false
-	}
+  try {
+    const user = await UserModel.findOne({ userId: userId });
+    if (!user) {
+      return false;
+    }
+    return user.favorites.some((favorite) => favorite.id === imageId);
+  } catch (err) {
+    return false;
+  }
 }
 
 export async function setFavoriteImage(
-	userId: string,
-	imageRecord: ImageRecord,
-): Promise<boolean> {
-	const user = await UserModel.findOne({ userId: userId })
+  userId: string,
+  imageRecord: ImageRecord
+) {
+  try {
+    const user = await UserModel.findOne({ userId: userId });
 
-	if (user) {
-		//check if the image is already faved
-		const isFaved = await checkFavoriteImage(userId, imageRecord.id)
-		if (isFaved) {
-			return true
-		}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-		// if not already faved then fav it
-		user.favorites.push(imageRecord)
-		try {
-			await user.save()
-			return true
-		} catch (error) {
-			return false
-		}
-	} else {
-		// user does not exist, operation failed
-		return false
-	}
+    //check if the image is already faved
+    const isFaved = await checkFavoriteImage(userId, imageRecord.id);
+    if (isFaved) {
+      return true;
+    }
+
+    // if not already faved then fav it
+    user.favorites.push(imageRecord);
+    await user.save();
+  } catch (error) {
+    throw new Error(`failed to set favorite image: ${error}`);
+  }
 }
 
-export async function setRecentImage(
-	userId: string,
-	imageRecord: ImageRecord,
-): Promise<boolean> {
-	const user = await UserModel.findOne({ userId: userId })
+export async function setRecentImage(userId: string, imageRecord: ImageRecord) {
+  try {
+    const user = await UserModel.findOne({ userId: userId });
 
-	if (!user) {
-		return false
-	}
+    if (!user) {
+      throw new Error("User not found");
+    }
+    // Check if the image already exists in the history
+    const existingImage = user.history.find(
+      (record) => record.id === imageRecord.id
+    );
 
-	try {
-		// Check if the image already exists in the history
-		const existingImage = user.history.find(
-			(record) => record.id === imageRecord.id,
-		)
-		if (!existingImage) {
-			user.history.push(imageRecord)
-		}
-		await user.save()
-	} catch (error) {
-		return false
-	}
+    if (existingImage) {
+      throw new Error(`Image already exists in history: ${imageRecord.id}`);
+    }
 
-	return true
+    user.history.push(imageRecord);
+    await user.save();
+  } catch (error) {
+    throw new Error(`failed to set recent image: ${error}`);
+  }
 }
 
 export async function unsetRecentImage(
-	userId: string,
-	imageRecord: ImageRecord,
-): Promise<boolean> {
-	const user = await UserModel.findOne({ userId: userId })
+  userId: string,
+  imageRecord: ImageRecord
+) {
+  try {
+    const user = await UserModel.findOne({ userId: userId });
 
-	if (!user) {
-		return false
-	}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-	// Filter out the image with the matching ID from the history array
-	user.history = user.history.filter(
-		(record) => record.id.toString() !== imageRecord.id,
-	)
+    user.history = user.history.filter(
+      (record) => record.id.toString() !== imageRecord.id
+    );
 
-	try {
-		await user.save()
-	} catch (error) {
-		return false
-	}
-
-	return true
+    await user.save();
+  } catch (error) {
+    return false;
+  }
 }
 
-export async function deleteRecentHistory(userId: string): Promise<boolean> {
-	const user = await UserModel.findOne({ userId: userId })
-	if (!user) {
-		return false
-	}
+export async function deleteRecentHistory(userId: string) {
+  try {
+    const user = await UserModel.findOne({ userId: userId });
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-	try {
-		await UserModel.updateOne({ userId }, { $set: { history: [] } })
-	} catch (error) {
-		return false
-	}
-
-	return true
+    await UserModel.updateOne({ userId }, { $set: { history: [] } });
+  } catch (error) {
+    throw new Error(`failed to delete recent image history: ${error}`);
+  }
 }
 
 export async function getFavoriteImages(
-	userId: string,
+  userId: string
 ): Promise<ImageRecord[]> {
-	const user = await UserModel.findOne({ userId: userId })
+  try {
+    const user = await UserModel.findOne({ userId: userId });
 
-	if (!user) {
-		throw new Error("User not found")
-	}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-	return user.favorites
+    return user.favorites;
+  } catch (error) {
+    throw new Error(`Failed to get fav images: ${error}`);
+  }
 }
 
-export async function getRecentImages(
-	userId: string,
-): Promise<ImageRecord[] | null> {
-	const user = await UserModel.findOne({ userId: userId })
+export async function getRecentImages(userId: string): Promise<ImageRecord[]> {
+  try {
+    const user = await UserModel.findOne({ userId: userId });
 
-	if (!user) {
-		return null
-	}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-	return user.history
+    return user.history;
+  } catch (error) {
+    throw new Error(`failed to get recent images: ${error}`);
+  }
 }
 
-export async function unsetFavoriteImage(
-	userId: string,
-	imageId: ImageId,
-): Promise<boolean> {
-	const user = await UserModel.findOne({ userId: userId })
+export async function unsetFavoriteImage(userId: string, imageId: ImageId) {
+  try {
+    const user = await UserModel.findOne({ userId: userId });
 
-	if (!user) {
-		return false
-	}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-	const updatedFavorites = user.favorites.filter(
-		(image) => image.id !== imageId,
-	)
+    const updatedFavorites = user.favorites.filter(
+      (image) => image.id !== imageId
+    );
 
-	user.favorites = updatedFavorites
-
-	try {
-		await user.save()
-		return true
-	} catch (error) {
-		return false
-	}
+    user.favorites = updatedFavorites;
+    await user.save();
+  } catch (error) {
+    throw new Error(`failed to unset favorite image: ${error}`);
+  }
 }
