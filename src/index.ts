@@ -45,7 +45,7 @@ app.use(express.json());
 
 // for testing purpose; protected
 app.get(
-  "/welcomeimages",
+  "/images/welcomeimages",
   verifyAnonToken,
   async (req: Request, res: Response) => {
     try {
@@ -160,7 +160,7 @@ app.post(
 );
 
 app.post(
-  "/createUser",
+  "/user/create",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     try {
@@ -179,7 +179,7 @@ app.post(
 );
 
 app.post(
-  "/userProfile",
+  "/user/profile",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     try {
@@ -195,7 +195,7 @@ app.post(
 );
 
 app.post(
-  "/setFavoriteImage",
+  "/images/setFavorite",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     try {
@@ -269,7 +269,7 @@ app.post(
 );
 
 app.post(
-  "/getRecentImages",
+  "/images/getRecent",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     try {
@@ -290,7 +290,7 @@ app.post(
 );
 
 app.post(
-  "/getFavoriteImages",
+  "/images/getFavorites",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     try {
@@ -327,7 +327,7 @@ app.post(
 );
 
 app.post(
-  "/unsetFavoriteImage",
+  "/images/unsetFavorite",
   verifyAuth0Token,
   async (req: Request, res: Response) => {
     try {
