@@ -26,6 +26,11 @@ Pixvault is a robust stock image website built with the MERN stack (MongoDB, Exp
 
 The communication between frontend and backend follows the REST architectural style.
 
+## Deployed using PM2
+
+Process Manager 2 is used to manage the backend server.
+![PM2 Monitor](screenshots/pv.monitor.png)
+
 ## Key Features
 
 - **Typescript:** Enhances code maintainability, type safety, and developer experience.
